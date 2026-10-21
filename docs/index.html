@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ӨRLEU BASE</title>
+<meta name="theme-color" content="#0a3768">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" class="hidden">
+  <header>
+    <div style="display:flex;align-items:center;gap:12px">
+      <img alt="Логотип Өрлеу" src="logo.png">
+      <div><b style="font-size:21px">ӨRLEU BASE</b><br><small class="hdr-sub">Учёт техники • Акмолинская область</small></div>
+    </div>
+    <div class="hdr-right"><span id="userchip" class="user-chip"></span><button onclick="logout()">Выйти</button></div>
+  </header>
+  <nav id="nav"></nav>
+  <main id="main"></main>
+  <button class="primary fab" onclick="location.hash='#/scan'">📷 Сканер</button>
+</div>
+<div id="loginView" class="login-wrap hidden">
+  <form class="login" onsubmit="doLogin(event)">
+    <img src="logo.png" alt="Өрлеу">
+    <h2>ӨRLEU BASE</h2>
+    <p class="muted">Учёт техники и имущества филиала</p>
+    <input name="email" type="email" placeholder="Электронная почта" autocomplete="username" required>
+    <input name="password" type="password" placeholder="Пароль" autocomplete="current-password" required>
+    <button class="primary" type="submit">Войти</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</div>
+<dialog id="modal"></dialog>
+<div id="toast"></div>
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="vendor/html5-qrcode.min.js"></script>
+<script src="vendor/xlsx.full.min.js" defer></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -105,3 +105,8 @@ dialog .form textarea{min-height:70px}
   body.printing-labels header,body.printing-labels nav,body.printing-labels .no-print,body.printing-labels .fab{display:none!important}
   body.printing-labels main{margin:0!important;padding:0!important}
 }
+/* логотип и область над навигацией */
+nav:after{content:none!important}
+.nav-brand{position:fixed;top:20px;left:18px;width:216px;display:flex;align-items:center;gap:12px;color:#fff;font-weight:800;font-size:15px;line-height:1.25;letter-spacing:.2px}
+.nav-brand img{width:54px;height:54px;flex:none;border-radius:50%;background:#103d70;object-fit:contain}
+@media(max-width:900px){.nav-brand{display:none}}

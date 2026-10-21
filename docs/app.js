@@ -107,7 +107,7 @@ const NAV = [
 const SECTION_OF = { a: 'assets', room: 'rooms', emp: 'employees', audit: 'audits' };
 
 function renderNav(section) {
-  $('#nav').innerHTML = NAV.map(([key, icon, label]) =>
+  $('#nav').innerHTML = `<div class="nav-brand"><img src="logo.png" alt="Өрлеу"><span>Акмолинская область</span></div>` + NAV.map(([key, icon, label]) =>
     `<button class="${key === section ? 'active' : ''}" onclick="location.hash='#/${key}'"><span class="menu-icon">${icon}</span>${label}</button>`).join('');
 }
 

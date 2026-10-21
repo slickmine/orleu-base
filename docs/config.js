@@ -3,6 +3,7 @@
 window.ORLEU_CONFIG = {
   SUPABASE_URL: 'https://ypwaepxddsrumtmxebhk.supabase.co',       // https://xxxxxxxx.supabase.co
   SUPABASE_ANON_KEY: 'sb_publishable_HKKtStKMJO8pDbndtb4suA_54-wi5o8',  // Project Settings → API → anon public
-  // Адрес сайта, который зашивается в QR-коды. Не меняйте после печати наклеек.
-  SITE_URL: 'https://slickmine.github.io/orleu-base/',
+  // Адрес сайта для QR-кодов. Пусто — берётся адрес, по которому открыт сайт
+  // (после передачи репозитория другому владельцу QR автоматически ведут на новый адрес).
+  SITE_URL: '',
 };

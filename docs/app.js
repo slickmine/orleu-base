@@ -171,7 +171,7 @@ VIEWS[''] = async () => {
   const cnt = c => A.filter(a => a.category === c).length;
   const cat = (icon, name, filter) => `<button class="category" onclick="S.filters={q:'',category:'${filter}',room:'',condition:'',status:''};location.hash='#/assets'"><span class="cat-ico">${icon}</span>${name} <span style="float:right">${cnt(filter)}</span></button>`;
   const q = (icon, name, fn) => `<button onclick="${fn}"><span class="qico">${icon}</span>${name}</button>`;
-  return `<section class="hero-new"><h1>Қош келдіңіз!</h1><p>Система учёта компьютерной техники и имущества филиала</p>
+  return `<section class="hero-new"><h1>Добро пожаловать!</h1><p>Система учёта компьютерной техники и имущества филиала</p>
     </section>
   <section class="dashboard-stats">
     <div class="dstat"><div class="di">🖥️</div><div><span>Основные средства</span><b>${active.length}</b><span>Единиц в учёте</span></div></div>

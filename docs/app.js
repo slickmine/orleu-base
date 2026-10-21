@@ -172,7 +172,7 @@ VIEWS[''] = async () => {
   const cat = (icon, name, filter) => `<button class="category" onclick="S.filters={q:'',category:'${filter}',room:'',condition:'',status:''};location.hash='#/assets'"><span class="cat-ico">${icon}</span>${name} <span style="float:right">${cnt(filter)}</span></button>`;
   const q = (icon, name, fn) => `<button onclick="${fn}"><span class="qico">${icon}</span>${name}</button>`;
   return `<section class="hero-new"><h1>Қош келдіңіз!</h1><p>Система учёта компьютерной техники и имущества филиала</p>
-    <p style="margin-top:10px;color:#1376df;font-weight:700">Білімге жол – біліктіліктен!</p></section>
+    </section>
   <section class="dashboard-stats">
     <div class="dstat"><div class="di">🖥️</div><div><span>Основные средства</span><b>${active.length}</b><span>Единиц в учёте</span></div></div>
     <div class="dstat"><div class="di">🚪</div><div><span>Без кабинета</span><b>${active.filter(a => !a.room).length}</b><span>Требуют распределения</span></div></div>

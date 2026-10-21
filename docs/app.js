@@ -14,7 +14,7 @@ const roomOptions = (sel, empty = '— не указан —') =>
   `<option value="">${empty}</option>` + S.meta.rooms.map(r => `<option value="${r.id}" ${r.id === sel ? 'selected' : ''}>${esc(r.code)}${r.name ? ' — ' + esc(r.name) : ''}</option>`).join('');
 const empOptions = (sel, empty = '— не закреплено —') =>
   `<option value="">${empty}</option>` + S.meta.employees.map(e => `<option value="${e.id}" ${e.id === sel ? 'selected' : ''}>${esc(e.full_name)}</option>`).join('');
-const opts = (list, sel) => list.map(x => `<option ${x === sel ? 'selected' : ''}>${esc(x)}</option>`).join('');
+const opts = (list, sel) => list.map(x => `<option value="${esc(x)}" ${x === sel ? 'selected' : ''}>${esc(x)}</option>`).join('');
 
 function toast(text, ms = 2600) {
   const t = $('#toast'); t.textContent = text; t.style.display = 'block';
@@ -764,7 +764,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const REPORT_COLS = [['inv', 'Инв. номер', 16], ['name', 'Наименование', 42], ['category', 'Категория', 20], ['room', 'Кабинет', 12],
   ['employee', 'Закреплено за', 30], ['condition', 'Состояние', 16], ['status', 'Статус', 22], ['serial', 'Серийный №', 16],
   ['acquired', 'Дата поступления', 14], ['cost', 'Первонач. стоимость', 16], ['residual', 'Остаточная стоимость', 16], ['mol', 'МОЛ', 28], ['notes', 'Примечание', 40]];
-const toRows = (cols, list) => [cols.map(c => c[1]), ...list.map(x => cols.map(c => x[c[0]] ?? ''))];
+const toRows = (cols, list) => [cols.map(c => trText(c[1])), ...list.map(x => cols.map(c => { const v = x[c[0]] ?? ''; return typeof v === 'string' ? trText(v) : v; }))];
 const widthsOf = cols => cols.map(c => c[2]);
 
 async function exportReport(kind) {

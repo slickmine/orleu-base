@@ -110,3 +110,11 @@ nav:after{content:none!important}
 .nav-brand{position:fixed;top:20px;left:18px;width:216px;display:flex;align-items:center;gap:12px;color:#fff;font-weight:800;font-size:15px;line-height:1.25;letter-spacing:.2px}
 .nav-brand img{width:54px;height:54px;flex:none;border-radius:50%;background:#103d70;object-fit:contain}
 @media(max-width:900px){.nav-brand{display:none}}
+/* переключатель языка */
+.login{position:relative}
+.lang-switch{display:inline-flex;border:1px solid #d6e2f2;border-radius:10px;overflow:hidden;background:#fff;flex:none}
+.lang-switch button{min-height:36px;padding:6px 11px;border-radius:0;background:#fff;color:#4f6a8c;font-weight:800;font-size:13px;letter-spacing:.4px;box-shadow:none;width:auto;margin:0}
+.lang-switch button.on{background:#1477e7;color:#fff}
+.login .lang-switch.login-lang{position:absolute;top:14px;right:14px}
+.login .lang-switch button{width:auto;margin:0}
+@media(max-width:600px){header .hdr-right{gap:6px;flex-wrap:nowrap}.lang-switch button{padding:6px 9px;min-height:34px}}

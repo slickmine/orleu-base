@@ -17,7 +17,7 @@
       <img alt="Логотип Өрлеу" src="logo.png">
       <div><b style="font-size:21px">ӨRLEU BASE</b><br><small class="hdr-sub">Учёт техники • Акмолинская область</small></div>
     </div>
-    <div class="hdr-right"><span id="userchip" class="user-chip"></span><button onclick="logout()">Выйти</button></div>
+    <div class="hdr-right"><div class="lang-switch" translate="no"><button type="button" data-lang="ru" onclick="setLang('ru')">РУС</button><button type="button" data-lang="kk" onclick="setLang('kk')">ҚАЗ</button></div><span id="userchip" class="user-chip"></span><button onclick="logout()">Выйти</button></div>
   </header>
   <nav id="nav"></nav>
   <main id="main"></main>
@@ -25,6 +25,7 @@
 </div>
 <div id="loginView" class="login-wrap hidden">
   <form class="login" onsubmit="doLogin(event)">
+    <div class="lang-switch login-lang" translate="no"><button type="button" data-lang="ru" onclick="setLang('ru')">РУС</button><button type="button" data-lang="kk" onclick="setLang('kk')">ҚАЗ</button></div>
     <img src="logo.png" alt="Өрлеу">
     <h2>ӨRLEU BASE</h2>
     <p class="muted">Учёт техники и имущества филиала</p>
@@ -36,6 +37,7 @@
 </div>
 <dialog id="modal"></dialog>
 <div id="toast"></div>
+<script src="i18n.js"></script>
 <script src="config.js"></script>
 <script src="vendor/supabase.js"></script>
 <script src="vendor/qrcode.js"></script>

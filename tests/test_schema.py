@@ -124,6 +124,12 @@ def test_stock(conn):
     assert [(float(d), n) for d, n in cur.fetchall()] == [(-3.0, ""), (8.0, "Корректировка")]
 
 
+def test_viewer_cannot_forge_history(conn):
+    cur = as_user(conn, VIEWER)
+    with pytest.raises(psycopg2.Error, match="permission denied"):
+        cur.execute("select log_event('Перемещение', '241300000001', 'подделка')")
+
+
 def test_last_admin_protected(conn):
     cur = as_user(conn, ADMIN)
     with pytest.raises(psycopg2.Error, match="последнего администратора"):

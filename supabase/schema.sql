@@ -380,7 +380,21 @@ drop trigger if exists audit_events on public.audits;
 create trigger audit_events after insert or delete on public.audits for each row execute function public.audit_events();
 
 -- для GitHub Action, который раз в несколько дней «будит» бесплатный проект (без доступа к данным)
-create or replace function public.ping() returns text language sql stable as $$ select 'ok' $$;
+create or replace function public.ping() returns text language sql stable set search_path = public as $$ select 'ok' $$;
 grant execute on function public.ping() to anon;
+alter function public.parse_code(text) set search_path = public;
 
-revoke execute on function public.move_asset, public.stock_move, public.audit_scan, public.audit_close from anon;
+-- ---------- права на функции ----------
+-- внутренние функции и функции триггеров вызываются только самой базой
+-- (иначе пользователь «просмотр» мог бы дописать фальшивую историю через /rpc/log_event)
+revoke execute on function public.log_event(text, text, text), public.record_move(public.assets, bigint, bigint, text),
+  public.current_name(), public.handle_new_user(), public.keep_last_admin(), public.audit_assets(),
+  public.audit_simple(), public.audit_events(), public.stock_adjust()
+  from public, anon, authenticated;
+-- операции программы — только для вошедших; права администратора проверяются внутри каждой
+revoke execute on function public.move_asset(text, bigint, bigint, text), public.stock_move(bigint, numeric, text, text),
+  public.audit_scan(bigint, text, bigint), public.audit_close(bigint), public.is_admin()
+  from public, anon;
+grant execute on function public.move_asset(text, bigint, bigint, text), public.stock_move(bigint, numeric, text, text),
+  public.audit_scan(bigint, text, bigint), public.audit_close(bigint), public.is_admin()
+  to authenticated;

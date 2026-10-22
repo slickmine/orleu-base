@@ -61,7 +61,36 @@ function flatAsset(a) {
 const ASSET_COLS = '*, rooms(code, name), employees(full_name)';
 
 async function assetsAll() {
-  return (await all('assets', ASSET_COLS, b => b.order('inv'))).map(flatAsset);
+  const [assets, photos] = await Promise.all([all('assets', ASSET_COLS, b => b.order('inv')), all('asset_photos', 'asset_id, path', b => b.order('id'))]);
+  // миниатюра в списке — первое фото каждой единицы
+  const first = new Map();
+  for (const p of photos) if (!first.has(p.asset_id)) first.set(p.asset_id, p.path);
+  const urls = await signedUrls([...first.values()]);
+  return assets.map(a => ({ ...flatAsset(a), photo_url: urls.get(first.get(a.id)) || null }));
+}
+
+// ---------- фото ----------
+const PHOTO_BUCKET = 'asset-photos';
+// хранилище закрытое: ссылки на фото временные (действуют час) и выдаются только вошедшим
+async function signedUrls(paths) {
+  const out = new Map();
+  for (let i = 0; i < paths.length; i += 100) {
+    const part = paths.slice(i, i + 100);
+    const { data, error } = await sb.storage.from(PHOTO_BUCKET).createSignedUrls(part, 3600);
+    if (error) throw new ApiError(pgMessage(error));
+    for (const d of data || []) if (d.signedUrl) out.set(d.path, d.signedUrl);
+  }
+  return out;
+}
+async function assetPhotos(assetId) {
+  const rows = await q(sb.from('asset_photos').select('*').eq('asset_id', assetId).order('id'));
+  const urls = await signedUrls(rows.map(r => r.path));
+  return rows.map(r => ({ id: r.id, url: urls.get(r.path) || '', at: fmt(r.created_at), user: r.user }));
+}
+async function removeFiles(paths) {
+  if (!paths.length) return;
+  const { error } = await sb.storage.from(PHOTO_BUCKET).remove(paths);
+  if (error) console.warn('Фото не удалены из хранилища:', error.message);
 }
 async function assetByInv(inv) {
   const a = await q(sb.from('assets').select(ASSET_COLS).eq('inv', inv).maybeSingle());
@@ -136,7 +165,23 @@ const ROUTES = [
     a.events = withAt(events);
     a.open_audits = audits.map(o => ({ id: o.id, name: o.name, room: o.rooms?.code || null, scanned: scanned.has(o.id) }));
     a.updated_at = fmt(a.updated_at);
+    a.photos = await assetPhotos(a.id);
     return a;
+  }],
+  ['POST', /^\/api\/assets\/([^/]+)\/photos$/, async (inv, body) => {
+    const a = await assetByInv(inv);
+    const path = `${a.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error } = await sb.storage.from(PHOTO_BUCKET).upload(path, body.blob, { contentType: 'image/jpeg' });
+    if (error) throw new ApiError(/row-level security|Unauthorized|403/i.test(error.message) ? 'Недостаточно прав: доступ только для просмотра' : error.message);
+    try { await q(sb.from('asset_photos').insert({ asset_id: a.id, path })); }
+    catch (e) { await removeFiles([path]); throw e; }
+    return { ok: true };
+  }],
+  ['DELETE', /^\/api\/photos\/(\d+)$/, async id => {
+    const rows = await q(sb.from('asset_photos').delete().eq('id', id).select('path'));
+    if (!rows.length) throw new ApiError('Недостаточно прав или запись не найдена', 403);
+    await removeFiles(rows.map(r => r.path));
+    return { ok: true };
   }],
   ['POST', /^\/api\/assets$/, async (body) => {
     const row = await q(sb.from('assets').insert(assetPayload(body)).select('inv').single());
@@ -159,7 +204,10 @@ const ROUTES = [
     return assetByInv(inv);
   }],
   ['DELETE', /^\/api\/assets\/([^/]+)$/, async inv => {
-    const rows = await q(sb.from('assets').delete().eq('inv', inv).select('id'));
+    const a = await assetByInv(inv);
+    const photos = await q(sb.from('asset_photos').select('path').eq('asset_id', a.id));
+    const rows = await q(sb.from('assets').delete().eq('id', a.id).select('id'));
+    if (rows.length) await removeFiles(photos.map(p => p.path));
     if (!rows.length) throw new ApiError('Недостаточно прав или запись не найдена', 403);
     return { ok: true };
   }],

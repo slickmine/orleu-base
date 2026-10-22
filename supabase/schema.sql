@@ -398,3 +398,45 @@ revoke execute on function public.move_asset(text, bigint, bigint, text), public
 grant execute on function public.move_asset(text, bigint, bigint, text), public.stock_move(bigint, numeric, text, text),
   public.audit_scan(bigint, text, bigint), public.audit_close(bigint), public.is_admin()
   to authenticated;
+
+-- ---------- фото техники ----------
+create table if not exists public.asset_photos (
+  id bigint generated always as identity primary key,
+  asset_id bigint not null references public.assets(id) on delete cascade,
+  path text not null unique,
+  created_at timestamptz not null default now(),
+  "user" text not null default ''
+);
+create index if not exists asset_photos_asset on public.asset_photos(asset_id);
+alter table public.asset_photos enable row level security;
+drop policy if exists read_all on public.asset_photos;
+create policy read_all on public.asset_photos for select to authenticated using (true);
+drop policy if exists admin_write on public.asset_photos;
+create policy admin_write on public.asset_photos for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.photo_events() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if tg_op = 'INSERT' then
+    new."user" := coalesce(current_name(), '');
+    perform log_event('Добавлено фото', (select inv from assets where id = new.asset_id), '');
+    return new;
+  end if;
+  perform log_event('Удалено фото', coalesce((select inv from assets where id = old.asset_id), ''), '');
+  return old;
+end $$;
+drop trigger if exists photo_events on public.asset_photos;
+create trigger photo_events before insert or delete on public.asset_photos
+  for each row execute function public.photo_events();
+revoke execute on function public.photo_events() from public, anon, authenticated;
+
+-- хранилище файлов: закрытое, до 5 МБ, только изображения (только в Supabase, схема storage)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('asset-photos', 'asset-photos', false, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+drop policy if exists "orleu photos read" on storage.objects;
+create policy "orleu photos read" on storage.objects for select to authenticated using (bucket_id = 'asset-photos');
+drop policy if exists "orleu photos insert" on storage.objects;
+create policy "orleu photos insert" on storage.objects for insert to authenticated with check (bucket_id = 'asset-photos' and public.is_admin());
+drop policy if exists "orleu photos delete" on storage.objects;
+create policy "orleu photos delete" on storage.objects for delete to authenticated using (bucket_id = 'asset-photos' and public.is_admin());

@@ -21,6 +21,10 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
 end $$;
 grant usage on schema public, auth to anon, authenticated;
+create schema if not exists storage;
+create table if not exists storage.buckets (id text primary key, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+create table if not exists storage.objects (id serial primary key, bucket_id text, name text);
+alter table storage.objects enable row level security;
 """
 GRANTS = """
 grant select, insert, update, delete on all tables in schema public to authenticated;
@@ -154,3 +158,16 @@ def test_seed_loads_twice_without_duplicates(conn):
     assert cur.fetchone()[0] == stock
     cur.execute("select count(*) from events where type = 'Добавлено ОС'")
     assert cur.fetchone()[0] == 3  # импорт не засоряет журнал, только 3 тестовые записи
+
+
+def test_photos_admin_only(conn):
+    cur = as_user(conn, ADMIN)
+    cur.execute("insert into asset_photos (asset_id, path) values ((select id from assets where inv = '241300000001'), 'x/1.jpg') returning \"user\"")
+    assert cur.fetchone()[0] == "admin@x.kz"
+    cur.execute("select count(*) from events where type = 'Добавлено фото'")
+    assert cur.fetchone()[0] == 1
+    cur = as_user(conn, VIEWER)
+    cur.execute("delete from asset_photos")
+    assert cur.rowcount == 0
+    with pytest.raises(psycopg2.Error, match="row-level security"):
+        cur.execute("insert into asset_photos (asset_id, path) values ((select id from assets limit 1), 'x/2.jpg')")

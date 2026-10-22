@@ -118,3 +118,14 @@ nav:after{content:none!important}
 .login .lang-switch.login-lang{position:absolute;top:14px;right:14px}
 .login .lang-switch button{width:auto;margin:0}
 @media(max-width:600px){header .hdr-right{gap:6px;flex-wrap:nowrap}.lang-switch button{padding:6px 9px;min-height:34px}}
+/* фото техники */
+.thumb-col{width:52px;padding-right:0!important}
+.thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;display:block;background:#eef3fa}
+.thumb-empty{display:grid;place-items:center;font-size:16px;opacity:.35}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+.photo{position:relative;margin:0;border-radius:12px;overflow:hidden;background:#eef3fa;aspect-ratio:4/3}
+.photo img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block}
+.photo-del{position:absolute;top:6px;right:6px;min-height:30px;width:30px;padding:0;border-radius:50%;background:#fffffff0;color:#b42318;box-shadow:0 2px 8px #0002}
+label.btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border-radius:10px;padding:10px 14px;font-weight:650}
+label.btn.primary{background:linear-gradient(115deg,#0879ee,#2e9bff);color:#fff;box-shadow:0 5px 14px #2079e72b}
+@media(max-width:600px){.thumb-col{width:40px}.thumb{width:34px;height:34px}.photos{grid-template-columns:repeat(2,1fr)}}

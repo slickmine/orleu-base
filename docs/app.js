@@ -131,10 +131,11 @@ async function refresh() { await Promise.all([loadMeta(), loadAssets()]); await 
 // ---------- таблица ОС ----------
 function assetTable(list, { showRoom = true, showEmp = true } = {}) {
   if (!list.length) return '<div class="empty">Нет записей</div>';
-  return `<div class="scroll"><table><thead><tr><th>Инв. номер</th><th>Наименование</th>
+  return `<div class="scroll"><table><thead><tr><th class="thumb-col"></th><th>Инв. номер</th><th>Наименование</th>
     ${showRoom ? '<th>Кабинет</th>' : ''}${showEmp ? '<th class="hide-sm">Закреплено за</th>' : ''}
     <th>Состояние</th><th class="hide-sm">Статус</th></tr></thead><tbody>
     ${list.map(a => `<tr class="clickable" onclick="location.hash='#/a/${encodeURIComponent(a.inv)}'">
+      <td class="thumb-col">${a.photo_url ? `<img class="thumb" src="${esc(a.photo_url)}" alt="" loading="lazy">` : '<span class="thumb thumb-empty">📷</span>'}</td>
       <td class="num">${esc(a.inv)}</td><td>${esc(a.name)}</td>
       ${showRoom ? `<td>${a.room ? esc(a.room) : '<span class="badge b-bad">нет</span>'}</td>` : ''}
       ${showEmp ? `<td class="hide-sm">${esc(a.employee || '—')}</td>` : ''}
@@ -252,6 +253,13 @@ VIEWS.a = async inv => {
       ? `<span class="badge b-ok">✓ отмечено в «${esc(o.name)}»</span>`
       : `<button class="primary" onclick="markInAudit(${o.id},'${esc(a.inv)}')">✓ Отметить в «${esc(o.name)}»</button>`).join(' ')}</div>` : ''}
   </div>
+  <div class="panel"><div class="top"><h2>Фото</h2>
+    ${adm ? `<label class="btn primary photo-add">📷 Добавить фото<input type="file" accept="image/*" multiple hidden onchange="uploadPhotos('${esc(a.inv)}', this.files)"></label>` : ''}</div>
+    <div id="photoStatus" class="muted"></div>
+    ${a.photos.length ? `<div class="photos">${a.photos.map(p => `<figure class="photo">
+      <img src="${esc(p.url)}" alt="" loading="lazy" onclick="openPhoto('${esc(p.url)}')">
+      ${adm ? `<button class="photo-del" title="Удалить фото" onclick="deletePhoto(${p.id})">✕</button>` : ''}</figure>`).join('')}</div>`
+      : '<div class="empty">Фото пока нет</div>'}</div>
   <div class="panel"><h2>История перемещений</h2>${a.movements.length ? `<div class="scroll"><table><tr><th>Дата</th><th>Откуда</th><th>Куда</th><th>Основание</th><th class="hide-sm">Кто</th></tr>
     ${a.movements.map(m => `<tr><td class="num">${esc(m.at)}</td><td>${esc(m.from_room || '—')}<br><small class="muted">${esc(m.from_employee)}</small></td>
       <td>${esc(m.to_room || '—')}<br><small class="muted">${esc(m.to_employee)}</small></td><td>${esc(m.reason)}</td><td class="hide-sm">${esc(m.user)}</td></tr>`).join('')}</table></div>`
@@ -305,6 +313,46 @@ async function deleteAsset(inv) {
   if (!confirm(`Удалить ${inv} из базы полностью? Для списанной техники лучше поставить статус «Списана» — тогда история сохранится.`)) return;
   await act(() => api('DELETE', '/api/assets/' + encodeURIComponent(inv)), 'Удалено');
   await loadAssets(); location.hash = '#/assets';
+}
+
+// ----- фото -----
+// перед загрузкой фото уменьшается до 1600 px и сжимается в JPEG (~150–300 КБ)
+async function compressImage(file, maxSide = 1600, quality = 0.82) {
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => null);
+  if (!bmp) throw new Error('Файл не является изображением');
+  const k = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return new Promise((ok, fail) => c.toBlob(b => b ? ok(b) : fail(new Error('Не удалось обработать фото')), 'image/jpeg', quality));
+}
+
+async function uploadPhotos(inv, files) {
+  const list = [...files];
+  if (!list.length) return;
+  const status = $('#photoStatus');
+  try {
+    for (let i = 0; i < list.length; i++) {
+      if (status) status.textContent = `Загрузка фото… ${i + 1} / ${list.length}`;
+      const blob = await compressImage(list[i]);
+      await api('POST', `/api/assets/${encodeURIComponent(inv)}/photos`, { blob });
+    }
+    toast(list.length > 1 ? `Фото добавлены: ${list.length}` : 'Фото добавлено');
+  } catch (e) { alert(e.message); }
+  await loadAssets(); route();
+}
+
+async function deletePhoto(id) {
+  if (!confirm('Удалить фото?')) return;
+  await act(() => api('DELETE', '/api/photos/' + id), 'Удалено');
+  await loadAssets(); route();
+}
+
+function openPhoto(url) {
+  const d = $('#modal');
+  d.innerHTML = `<img src="${esc(url)}" alt="" style="max-width:100%;max-height:75vh;display:block;margin:auto;border-radius:12px">
+    <div class="actions"><button onclick="this.closest('dialog').close()">Закрыть</button></div>`;
+  d.showModal();
 }
 
 async function markInAudit(auditId, inv) {

@@ -1,6 +1,6 @@
 // Сервис-воркер нужен для установки приложения на телефон/ПК.
 // Данные всегда берутся из базы Supabase; кэш — только запасной вариант для оболочки сайта.
-const CACHE = 'orleu-shell-v4';
+const CACHE = 'orleu-shell-v5';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'data.js', 'config.js', 'logo.png', 'icon-192.png',
   'i18n.js', 'vendor/supabase.js', 'vendor/qrcode.js', 'vendor/html5-qrcode.min.js', 'vendor/xlsx.full.min.js']
   .map(p => new URL(p, self.registration.scope).pathname);

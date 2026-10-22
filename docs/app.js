@@ -131,11 +131,11 @@ async function refresh() { await Promise.all([loadMeta(), loadAssets()]); await 
 // ---------- таблица ОС ----------
 function assetTable(list, { showRoom = true, showEmp = true } = {}) {
   if (!list.length) return '<div class="empty">Нет записей</div>';
-  return `<div class="scroll"><table><thead><tr><th class="thumb-col"></th><th>Инв. номер</th><th>Наименование</th>
+  return `<div class="scroll"><table><thead><tr><th class="num-col">№</th><th class="thumb-col"></th><th>Инв. номер</th><th>Наименование</th>
     ${showRoom ? '<th>Кабинет</th>' : ''}${showEmp ? '<th class="hide-sm">Закреплено за</th>' : ''}
     <th>Состояние</th><th class="hide-sm">Статус</th></tr></thead><tbody>
-    ${list.map(a => `<tr class="clickable" onclick="location.hash='#/a/${encodeURIComponent(a.inv)}'">
-      <td class="thumb-col">${a.photo_url ? `<img class="thumb" src="${esc(a.photo_url)}" alt="" loading="lazy">` : '<span class="thumb thumb-empty">📷</span>'}</td>
+    ${list.map((a, i) => `<tr class="clickable" onclick="location.hash='#/a/${encodeURIComponent(a.inv)}'">
+      <td class="num-col">${i + 1}</td><td class="thumb-col">${a.photo_url ? `<img class="thumb" src="${esc(a.photo_url)}" alt="" loading="lazy">` : '<span class="thumb thumb-empty">📷</span>'}</td>
       <td class="num">${esc(a.inv)}</td><td>${esc(a.name)}</td>
       ${showRoom ? `<td>${a.room ? esc(a.room) : '<span class="badge b-bad">нет</span>'}</td>` : ''}
       ${showEmp ? `<td class="hide-sm">${esc(a.employee || '—')}</td>` : ''}
@@ -481,8 +481,8 @@ VIEWS.stock = async () => {
   return `<div class="top"><div><h1>ТМЗ и расходные материалы</h1><div class="muted">Количественный учёт: приход, выдача, остатки. Отдельно от основных средств.</div></div>
     <div class="btnrow">${isAdmin() ? '<button class="primary" onclick="editStock()">＋ Позиция</button>' : ''}<button onclick="download('stock')">⇩ Excel</button></div></div>
   <div class="filters" style="grid-template-columns:1fr"><input type="search" placeholder="Поиск по названию" oninput="document.querySelectorAll('#stockT tr[data-n]').forEach(r=>r.style.display=r.dataset.n.includes(this.value.toLowerCase())?'':'none')"></div>
-  <div class="panel scroll"><table id="stockT"><tr><th>Наименование</th><th>Остаток</th><th class="hide-sm">Мин.</th><th>Где</th><th class="hide-sm">Примечание</th><th></th></tr>
-  ${items.map(s => `<tr data-n="${esc(s.name.toLowerCase())}"><td>${esc(s.name)}</td>
+  <div class="panel scroll"><table id="stockT"><tr><th class="num-col">№</th><th>Наименование</th><th>Остаток</th><th class="hide-sm">Мин.</th><th>Где</th><th class="hide-sm">Примечание</th><th></th></tr>
+  ${items.map((s, i) => `<tr data-n="${esc(s.name.toLowerCase())}"><td class="num-col">${i + 1}</td><td>${esc(s.name)}</td>
     <td class="num ${s.qty <= s.min_qty ? 'bad' : 'ok'}"><b>${s.qty}</b> ${esc(s.unit)}</td><td class="hide-sm num">${s.min_qty}</td>
     <td>${esc(s.room || '—')}</td><td class="hide-sm">${esc(s.notes)}</td>
     <td style="white-space:nowrap">${isAdmin() ? `<button onclick="stockMove(${s.id},-1)">Выдать</button> <button onclick="stockMove(${s.id},1)">Приход</button> <button onclick="editStock(${s.id})">✎</button>` : ''}
@@ -820,8 +820,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 const REPORT_COLS = [['inv', 'Инв. номер', 16], ['name', 'Наименование', 42], ['category', 'Категория', 20], ['room', 'Кабинет', 12],
   ['employee', 'Закреплено за', 30], ['condition', 'Состояние', 16], ['status', 'Статус', 22], ['serial', 'Серийный №', 16],
   ['acquired', 'Дата поступления', 14], ['cost', 'Первонач. стоимость', 16], ['residual', 'Остаточная стоимость', 16], ['mol', 'МОЛ', 28], ['notes', 'Примечание', 40]];
-const toRows = (cols, list) => [cols.map(c => trText(c[1])), ...list.map(x => cols.map(c => { const v = x[c[0]] ?? ''; return typeof v === 'string' ? trText(v) : v; }))];
-const widthsOf = cols => cols.map(c => c[2]);
+const toRows = (cols, list) => [['№', ...cols.map(c => trText(c[1]))],
+  ...list.map((x, i) => [i + 1, ...cols.map(c => { const v = x[c[0]] ?? ''; return typeof v === 'string' ? trText(v) : v; })])];
+const widthsOf = cols => [5, ...cols.map(c => c[2])];
 
 async function exportReport(kind) {
   await loadAssets();

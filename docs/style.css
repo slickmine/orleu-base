@@ -129,3 +129,4 @@ nav:after{content:none!important}
 label.btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border-radius:10px;padding:10px 14px;font-weight:650}
 label.btn.primary{background:linear-gradient(115deg,#0879ee,#2e9bff);color:#fff;box-shadow:0 5px 14px #2079e72b}
 @media(max-width:600px){.thumb-col{width:40px}.thumb{width:34px;height:34px}.photos{grid-template-columns:repeat(2,1fr)}}
+.reset-btn{margin-left:10px;min-height:30px;padding:5px 11px;background:#fff1e6;color:#b45309;font-weight:700;font-size:13px}

@@ -108,7 +108,7 @@ const SECTION_OF = { a: 'assets', room: 'rooms', emp: 'employees', audit: 'audit
 
 function renderNav(section) {
   $('#nav').innerHTML = `<div class="nav-brand"><img src="logo.png" alt="Өрлеу"><span>Акмолинская область</span></div>` + NAV.map(([key, icon, label]) =>
-    `<button class="${key === section ? 'active' : ''}" onclick="location.hash='#/${key}'"><span class="menu-icon">${icon}</span>${label}</button>`).join('');
+    `<button class="${key === section ? 'active' : ''}" onclick="${key === 'assets' ? 'resetFilters();' : ''}location.hash='#/${key}'"><span class="menu-icon">${icon}</span>${label}</button>`).join('');
 }
 
 async function route() {
@@ -153,9 +153,16 @@ function filteredAssets() {
     (!f.status || a.status === f.status));
 }
 
+// меню «Основные средства» всегда открывает полный список
+function resetFilters() {
+  S.filters = { q: '', category: '', room: '', condition: '', status: '' };
+  if (location.hash === '#/assets') route();
+}
+
 function renderAssetRows() {
   const list = filteredAssets();
   $('#assetCount').textContent = `${list.length} из ${S.assets.length}`;
+  $('#resetFilters').classList.toggle('hidden', !Object.values(S.filters).some(Boolean));
   $('#assetTable').innerHTML = assetTable(list);
 }
 
@@ -198,7 +205,8 @@ VIEWS[''] = async () => {
 
 VIEWS.assets = async () => {
   const f = S.filters, M = S.meta;
-  return `<div class="top"><div><h1>Основные средства (ОС)</h1><div class="muted">Показано: <span id="assetCount"></span></div></div>
+  return `<div class="top"><div><h1>Основные средства (ОС)</h1><div class="muted">Показано: <span id="assetCount"></span>
+    <button id="resetFilters" class="reset-btn hidden" onclick="resetFilters()">✕ Сбросить фильтры</button></div></div>
     <div class="btnrow">${isAdmin() ? `<button class="primary" onclick="editAsset()">＋ Добавить</button>` : ''}
       <button onclick="printFiltered()">🔳 QR-наклейки (по фильтру)</button>
       <button onclick="download('assets')">⇩ Excel</button></div></div>

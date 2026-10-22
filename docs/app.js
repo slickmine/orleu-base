@@ -262,7 +262,9 @@ VIEWS.a = async inv => {
       : `<button class="primary" onclick="markInAudit(${o.id},'${esc(a.inv)}')">✓ Отметить в «${esc(o.name)}»</button>`).join(' ')}</div>` : ''}
   </div>
   <div class="panel"><div class="top"><h2>Фото</h2>
-    ${adm ? `<label class="btn primary photo-add">📷 Добавить фото<input type="file" accept="image/*" multiple hidden onchange="uploadPhotos('${esc(a.inv)}', this.files)"></label>` : ''}</div>
+    ${adm ? `<div class="btnrow photo-btns">
+      <label class="btn primary photo-cam">📷 Сфотографировать<input type="file" accept="image/*" capture="environment" hidden onchange="uploadPhotos('${esc(a.inv)}', this.files)"></label>
+      <label class="btn photo-gal">🖼 Из галереи<input type="file" accept="image/*" multiple hidden onchange="uploadPhotos('${esc(a.inv)}', this.files)"></label></div>` : ''}</div>
     <div id="photoStatus" class="muted"></div>
     ${a.photos.length ? `<div class="photos">${a.photos.map(p => `<figure class="photo">
       <img src="${esc(p.url)}" alt="" loading="lazy" onclick="openPhoto('${esc(p.url)}')">
